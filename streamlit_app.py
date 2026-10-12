@@ -81,4 +81,4 @@ st.bar_chart(chart_data)
 
 # 10. Chân trang (Footer) thông tin cá nhân
 st.markdown("---")
-st.markdown("<p style='text-align: center; font-size: small; color: gray;'>Họ tên: [Tên của bạn] – MSSV: [Mã số sinh viên]</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: small; color: gray;'>Họ tên: [Hồ Đắc Thanh Tân] – MSSV: [046208003368]</p>", unsafe_allow_html=True)
