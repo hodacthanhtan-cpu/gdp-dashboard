@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 
+# Tiêu đề ứng dụng
+st.title("QUẢN LÝ ĐIỂM SINH VIÊN")
+
 # 1. Khởi tạo dữ liệu cho 10 sinh viên
 data = {
     'Ho_va_ten': [
@@ -32,31 +35,50 @@ def phan_loai(diem):
 # 5. Tạo thêm cột Xep_loai bằng cách áp dụng hàm phan_loai vào cột Tong_ket
 df['Xep_loai'] = df['Tong_ket'].apply(phan_loai)
 
-# 6. Hiển thị bảng dữ liệu sinh viên
-print("--- DANH SÁCH SINH VIÊN ---")
-print(df)
-print("\n" + "="*50 + "\n")
+# 6. Hiển thị bảng dữ liệu sinh viên lên web
+st.subheader("📋 Bảng danh sách điểm sinh viên")
+st.dataframe(df, use_container_width=True)
 
-# 7. THỰC HIỆN YÊU CẦU 4: THỐNG KÊ
-print("--- KẾT QUẢ THỐNG KÊ ---")
+# 7. Thống kê chung
+st.subheader("📊 Kết quả thống kê")
 
-# 8: Tính điểm tổng kết trung bình của lớp
+# Tính điểm tổng kết trung bình của lớp
 diem_tb_lop = df['Tong_ket'].mean()
-print(f"- Điểm tổng kết trung bình của lớp: {diem_tb_lop:.2f}")
+st.write(f"- **Điểm tổng kết trung bình của lớp:** {diem_tb_lop:.2f}")
 
-# 9: Tìm sinh viên có điểm tổng kết cao nhất
+# Tìm sinh viên có điểm tổng kết cao nhất
 sv_cao_nhat = df[df['Tong_ket'] == df['Tong_ket'].max()]
-print("- Sinh viên có điểm tổng kết cao nhất:")
 for index, row in sv_cao_nhat.iterrows():
-    print(f"  + {row['Ho_va_ten']} ({row['Tong_ket']} điểm)")
+    st.write(f"- **Sinh viên có điểm tổng kết cao nhất:** {row['Ho_va_ten']} ({row['Tong_ket']} điểm)")
 
-# 10: Tìm sinh viên có điểm tổng kết thấp nhất
+# Tìm sinh viên có điểm tổng kết thấp nhất
 sv_thap_nhat = df[df['Tong_ket'] == df['Tong_ket'].min()]
-print("- Sinh viên có điểm tổng kết thấp nhất:")
 for index, row in sv_thap_nhat.iterrows():
-    print(f"  + {row['Ho_va_ten']} ({row['Tong_ket']} điểm)")
+    st.write(f"- **Sinh viên có điểm tổng kết thấp nhất:** {row['Ho_va_ten']} ({row['Tong_ket']} điểm)")
 
-# 11: Đếm số sinh viên đạt (điểm tổng kết >= 5)
+# Đếm số sinh viên đạt (điểm tổng kết >= 5)
 so_sv_dat = df[df['Tong_ket'] >= 5.0].shape[0]
-print(f"- Số sinh viên đạt (Tổng kết >= 5): {so_sv_dat} sinh viên")
+st.write(f"- **Số sinh viên đạt (Tổng kết >= 5):** {so_sv_dat} sinh viên")
 
+# 8. Tra cứu chi tiết từng sinh viên (Selectbox)
+st.subheader("🔍 Tra cứu chi tiết sinh viên")
+selected_name = st.selectbox("Chọn tên sinh viên để xem:", df['Ho_va_ten'].tolist())
+sv_info = df[df['Ho_va_ten'] == selected_name].iloc[0]
+
+st.info(f"""
+- **Họ tên:** {sv_info['Ho_va_ten']}
+- **Điểm Chuyên cần:** {sv_info['Chuyen_can']}
+- **Điểm Giữa kỳ:** {sv_info['Giua_ky']}
+- **Điểm Cuối kỳ:** {sv_info['Cuoi_ky']}
+- **Điểm Tổng kết:** {sv_info['Tong_ket']}
+- **Xếp loại:** {sv_info['Xep_loai']}
+""")
+
+# 9. Biểu đồ cột điểm tổng kết
+st.subheader("📈 Biểu đồ điểm tổng kết của 10 sinh viên")
+chart_data = df.set_index('Ho_va_ten')['Tong_ket']
+st.bar_chart(chart_data)
+
+# 10. Chân trang (Footer) thông tin cá nhân
+st.markdown("---")
+st.markdown("<p style='text-align: center; font-size: small; color: gray;'>Họ tên: [Tên của bạn] – MSSV: [Mã số sinh viên]</p>", unsafe_allow_html=True)
