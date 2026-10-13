@@ -7,12 +7,12 @@ st.title("QUẢN LÝ ĐIỂM SINH VIÊN")
 # 1. Khởi tạo dữ liệu cho 10 sinh viên
 data = {
     'Ho_va_ten': [
-        'Nguyễn Văn A', 'Trần Thị B', 'Lê Hoàng C', 'Phạm Minh D', 'Vũ Thị E',
-        'Hoàng Văn F', 'Đỗ Thị G', 'Bùi Minh H', 'Phan Thanh I', 'Ngô Thị K'
+        'An', 'Bình', 'Chi', 'Dũng','Hà','Lan',
+        'Minh', 'Nam', 'Phúc', 'Trang'
     ],
-    'Chuyen_can': [9.0, 10.0, 7.0, 9.0, 9.0, 10.0, 7.0, 7.0, 9.0, 8.0],
-    'Giua_ky': [5.8, 5.3, 9.3, 8.0, 8.5, 5.1, 9.8, 9.2, 6.1, 5.9],
-    'Cuoi_ky': [5.1, 5.8, 7.1, 6.6, 5.7, 7.7, 4.8, 5.8, 6.2, 6.7]
+    'Chuyen_can': [8, 9, 7, 10, 8, 6, 9, 7, 8, 10],
+    'Giua_ky': [7,8, 6, 9, 7, 5, 8, 6, 7,9],
+    'Cuoi_ky': [9, 8, 7, 10, 6, 7, 9, 8, 7, 10]
 }
 
 # 2. Tạo DataFrame từ dữ liệu
@@ -81,4 +81,4 @@ st.bar_chart(chart_data)
 
 # 10. Chân trang (Footer) thông tin cá nhân
 st.markdown("---")
-st.markdown("<p style='text-align: center; font-size: small; color: gray;'>Họ tên: [Hồ Đắc Thanh Tân] – MSSV: [046208003368]</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: small; color: gray;'>Họ tên: [Dương Huỳnh Khánh Đạt] – MSSV: [040208011265]</p>", unsafe_allow_html=True)
