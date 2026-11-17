@@ -1,84 +1,103 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 
-# Tiêu đề ứng dụng
-st.title("QUẢN LÝ ĐIỂM SINH VIÊN")
+# Cấu hình trang
+st.set_page_config(
+    page_title='Bảng dữ liệu Giá nhà',
+    page_icon='🏠',
+    layout='wide'
+)
 
-# 1. Khởi tạo dữ liệu cho 10 sinh viên
-data = {
-    'Ho_va_ten': [
-        'Nguyễn Văn A', 'Trần Thị B', 'Lê Hoàng C', 'Phạm Minh D', 'Vũ Thị E',
-        'Hoàng Văn F', 'Đỗ Thị G', 'Bùi Minh H', 'Phan Thanh I', 'Ngô Thị K'
-    ],
-    'Chuyen_can': [9.0, 10.0, 7.0, 9.0, 9.0, 10.0, 7.0, 7.0, 9.0, 8.0],
-    'Giua_ky': [5.8, 5.3, 9.3, 8.0, 8.5, 5.1, 9.8, 9.2, 6.1, 5.9],
-    'Cuoi_ky': [5.1, 5.8, 7.1, 6.6, 5.7, 7.7, 4.8, 5.8, 6.2, 6.7]
-}
+# 1. Tạo hoặc tải dữ liệu giá nhà
+@st.cache_data
+def load_housing_data():
+    # Thay thế phần này bằng pd.read_csv('du_lieu_gia_nha.csv') nếu bạn có file riêng
+    years = list(range(2015, 2026))
+    cities = ['TP. Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Bình Dương', 'Hải Phòng']
+    
+    np.random.seed(42)
+    data = []
+    base_prices = {'TP. Hồ Chí Minh': 35, 'Hà Nội': 32, 'Đà Nẵng': 20, 'Bình Dương': 15, 'Hải Phòng': 16}
+    
+    for city in cities:
+        price = base_prices[city]
+        for year in years:
+            # Mô phỏng mức tăng giá trung bình hàng năm (triệu VNĐ/m2)
+            growth = np.random.uniform(1.05, 1.18)
+            price = round(price * growth, 1)
+            data.append({
+                'Khu vực': city,
+                'Năm': year,
+                'Giá trung bình (Triệu VNĐ/m²)': price
+            })
+            
+    return pd.DataFrame(data)
 
-# 2. Tạo DataFrame từ dữ liệu
-df = pd.DataFrame(data)
+df = load_housing_data()
 
-# 3. Tính điểm tổng kết (20% Chuyên cần + 30% Giữa kỳ + 50% Cuối kỳ) và làm tròn 2 chữ số
-df['Tong_ket'] = (0.2 * df['Chuyen_can'] + 0.3 * df['Giua_ky'] + 0.5 * df['Cuoi_ky']).round(2)
+# 2. Tiêu đề và mô tả
+st.title('🏠 Bảng Dữ Liệu & Biến Động Giá Nhà')
+st.markdown('Theo dõi xu hướng giá bất động sản trung bình (Triệu VNĐ/m²) qua các năm theo từng khu vực.')
 
-# 4. Định nghĩa hàm xếp loại sinh viên dựa trên điểm tổng kết
-def phan_loai(diem):
-    if diem >= 8.5:
-        return 'Giỏi'
-    elif diem >= 7.0:
-        return 'Khá'
-    elif diem >= 5.0:
-        return 'Trung bình'
-    else:
-        return 'Yếu'
+# 3. Bộ lọc tương tác (giống giao diện GDP Dashboard)
+col1, col2 = st.columns([1, 2])
 
-# 5. Tạo thêm cột Xep_loai bằng cách áp dụng hàm phan_loai vào cột Tong_ket
-df['Xep_loai'] = df['Tong_ket'].apply(phan_loai)
+with col1:
+    min_year = int(df['Năm'].min())
+    max_year = int(df['Năm'].max())
+    from_year, to_year = st.slider(
+        'Chọn khoảng thời gian:',
+        min_value=min_year,
+        max_value=max_year,
+        value=[2018, max_year]
+    )
 
-# 6. Hiển thị bảng dữ liệu sinh viên lên web
-st.subheader("📋 Bảng danh sách điểm sinh viên")
-st.dataframe(df, use_container_width=True)
+with col2:
+    cities = df['Khu vực'].unique()
+    selected_cities = st.multiselect(
+        'Chọn khu vực muốn so sánh:',
+        cities,
+        default=['TP. Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng']
+    )
 
-# 7. Thống kê chung
-st.subheader("📊 Kết quả thống kê")
+if not selected_cities:
+    st.warning("Vui lòng chọn ít nhất một khu vực để hiển thị dữ liệu.")
+    st.stop()
 
-# Tính điểm tổng kết trung bình của lớp
-diem_tb_lop = df['Tong_ket'].mean()
-st.write(f"- **Điểm tổng kết trung bình của lớp:** {diem_tb_lop:.2f}")
+# Lọc dữ liệu theo lựa chọn
+filtered_df = df[
+    (df['Khu vực'].isin(selected_cities)) &
+    (df['Năm'] >= from_year) &
+    (df['Năm'] <= to_year)
+]
 
-# Tìm sinh viên có điểm tổng kết cao nhất
-sv_cao_nhat = df[df['Tong_ket'] == df['Tong_ket'].max()]
-for index, row in sv_cao_nhat.iterrows():
-    st.write(f"- **Sinh viên có điểm tổng kết cao nhất:** {row['Ho_va_ten']} ({row['Tong_ket']} điểm)")
+# 4. Hiển thị chỉ số tăng trưởng (KPI Cards)
+st.subheader(f'Mức giá trung bình năm {to_year} (so với {from_year})')
+cols = st.columns(len(selected_cities))
 
-# Tìm sinh viên có điểm tổng kết thấp nhất
-sv_thap_nhat = df[df['Tong_ket'] == df['Tong_ket'].min()]
-for index, row in sv_thap_nhat.iterrows():
-    st.write(f"- **Sinh viên có điểm tổng kết thấp nhất:** {row['Ho_va_ten']} ({row['Tong_ket']} điểm)")
+for i, city in enumerate(selected_cities):
+    city_data = filtered_df[filtered_df['Khu vực'] == city]
+    first_price = city_data[city_data['Năm'] == from_year]['Giá trung bình (Triệu VNĐ/m²)'].values[0]
+    last_price = city_data[city_data['Năm'] == to_year]['Giá trung bình (Triệu VNĐ/m²)'].values[0]
+    
+    growth_pct = ((last_price - first_price) / first_price) * 100
+    
+    with cols[i]:
+        st.metric(
+            label=city,
+            value=f"{last_price} tr/m²",
+            delta=f"{growth_pct:.1f}%"
+        )
 
-# Đếm số sinh viên đạt (điểm tổng kết >= 5)
-so_sv_dat = df[df['Tong_ket'] >= 5.0].shape[0]
-st.write(f"- **Số sinh viên đạt (Tổng kết >= 5):** {so_sv_dat} sinh viên")
+# 5. Biểu đồ đường trực quan hóa xu hướng
+st.subheader('Biểu đồ biến động giá nhà')
+chart_data = filtered_df.pivot(index='Năm', columns='Khu vực', values='Giá trung bình (Triệu VNĐ/m²)')
+st.line_chart(chart_data)
 
-# 8. Tra cứu chi tiết từng sinh viên (Selectbox)
-st.subheader("🔍 Tra cứu chi tiết sinh viên")
-selected_name = st.selectbox("Chọn tên sinh viên để xem:", df['Ho_va_ten'].tolist())
-sv_info = df[df['Ho_va_ten'] == selected_name].iloc[0]
-
-st.info(f"""
-- **Họ tên:** {sv_info['Ho_va_ten']}
-- **Điểm Chuyên cần:** {sv_info['Chuyen_can']}
-- **Điểm Giữa kỳ:** {sv_info['Giua_ky']}
-- **Điểm Cuối kỳ:** {sv_info['Cuoi_ky']}
-- **Điểm Tổng kết:** {sv_info['Tong_ket']}
-- **Xếp loại:** {sv_info['Xep_loai']}
-""")
-
-# 9. Biểu đồ cột điểm tổng kết
-st.subheader("📈 Biểu đồ điểm tổng kết của 10 sinh viên")
-chart_data = df.set_index('Ho_va_ten')['Tong_ket']
-st.bar_chart(chart_data)
-
-# 10. Chân trang (Footer) thông tin cá nhân
-st.markdown("---")
-st.markdown("<p style='text-align: center; font-size: small; color: gray;'>Họ tên: [Hồ Đắc Thanh Tân] – MSSV: [046208003368]</p>", unsafe_allow_html=True)
+# 6. Bảng dữ liệu chi tiết
+st.subheader('Bảng dữ liệu chi tiết')
+st.dataframe(
+    chart_data.style.format("{:.1f} tr/m²"),
+    use_container_width=True
+)
